@@ -2,9 +2,9 @@ import sys
 import re
 from lxml import etree
 from collections import OrderedDict
-import mwpfh
+import mwparserfromhell as mwp
+from preprocess import preprocess
 
-tree = etree.parse(sys.argv[1])
 
 def ns_clean(tag):
     pattern = re.compile("\{(.+)\}(.*)")
@@ -33,17 +33,28 @@ def pack(tree):
             d[key] = parse[key](subtree)
     return d 
 
-def reduce(text):
-    ast = mwpfh.parse(text)
-    return ast
+def pformat(d):
+    text = d["revision"]
+    ast  = mwp.parse(text)
+    text = ast.strip_code()
+    text = preprocess(text)
+    return {"text": text, "title": d["title"]}
 
 
-for page in tree.getroot():
-    d = pack(page)
-    if d:
-        text = d["revision"]
-        ast = reduce(text)
-        sections = ast.get_sections()
-        print(sections)
+def extract(filename):
+    tree = etree.parse(filename)
+    data = []
+    count = 0
+    max_count = 10
+    for page in tree.getroot():
+        d = pack(page)
+        if d:
+            r = pformat(d)
+            data.append(r)
+        count = count + 1
+        if count > max_count:
+            break
+    return data
 
-
+if __name__ == '__main__':
+    print(extract(sys.argv[1]))
