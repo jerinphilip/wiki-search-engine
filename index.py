@@ -85,6 +85,7 @@ class InvertedIndex:
         for title_id in other.map:
             title = other.inverse[title_id]
             doc_id = self.id(title)
+            self.D[doc_id] = other.D[title_id]
             fposting = (doc_id, posting[key])
             self.map[key].append(fposting)
         return result
