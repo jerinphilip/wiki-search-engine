@@ -46,14 +46,18 @@ def extract(filename):
     data = []
     count = 0
     max_count = 10
+    debug = True
+    debug = False
     for page in tree.getroot():
         d = pack(page)
         if d:
             r = pformat(d)
             data.append(r)
-        count = count + 1
-        if count > max_count:
-            break
+
+        if debug:
+            count = count + 1
+            if count > max_count:
+                break
     return data
 
 if __name__ == '__main__':
