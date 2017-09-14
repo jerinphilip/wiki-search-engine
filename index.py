@@ -4,6 +4,8 @@ from copy import deepcopy
 import json
 import pickle
 from collections import Counter
+from math import sqrt, log
+import heapq
 
 class InvertedIndex:
     def __init__(self):
@@ -39,8 +41,19 @@ class InvertedIndex:
             self.counter = self.counter + 1
         return self.titles[key]
 
-    def query(self, key):
-        raise NotImplementedError
+    def query(self, tokens, count=50):
+        d = dict([(token, self.map[token]) for token in tokens])
+        score = defaultdict(float)
+        for key in d:
+            for posting in d[key]:
+                d_id, pos = posting
+                term_frequency = len(pos)
+                tf = term_frequency/self.D[d_id]
+                idf = len(self.titles)/len(posting)
+                d_title = self.inverse[d_id]
+                score[d_title] += log(1+tf)*log(idf)
+        top = heapq.nlargest(count, score.items(), key=lambda x: x[1])
+        return top
 
     def load(self, filename):
         with open(filename, "rb") as fp:
